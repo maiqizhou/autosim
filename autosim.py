@@ -9,7 +9,7 @@ import functools
 import operator
 from library import *
 from AffRANSAC import *
-   
+
 class RepeatedObject:
     def __init__(self, kplist, matches, truematches, img, lambda_descr = 6):
         self.mask = np.zeros(np.shape(img)[0:2], dtype=np.int32)
@@ -213,7 +213,7 @@ class GroupingStrategy(object):
 
         img = cv2.imread(ac_img_path) # trainImage
         gray= cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-        sift = cv2.xfeatures2d.SIFT_create()
+        sift = cv2.SIFT_create()
         klistac, dlistac = sift.detectAndCompute(gray,None)
         self.obj = self.libAS.New_GS(ctypes.c_float(rho), ctypes.c_int(maxNumMatches))
         self.Bind_KPs(klistac,dlistac,True)
@@ -302,7 +302,7 @@ class GroupingStrategy(object):
         self.h, self.w = gray1.shape[:2]
         self.imgfloat = np.zeros(self.w*self.h, dtype = ctypes.c_float)
         self.imgfloat[:] = np.array(gray1.data).flatten()
-        sift = cv2.xfeatures2d.SIFT_create()
+        sift = cv2.SIFT_create()
         klist, dlist = sift.detectAndCompute(gray1,None)
         self.imgkplist = klist
         self.Akps = [kp2LocalAffine(kp) for kp in klist]
@@ -501,7 +501,7 @@ def main(argv):
     maxNumMatches = 6000
     affinfo = 1
     matchratio = 0.8
-    lpath = './build/libautosim.so'
+    lpath = '/Users/maggie/autosim/libautosim.dylib'
     maxwidth = np.inf
 
     for opt, arg in opts:

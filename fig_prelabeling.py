@@ -8,7 +8,7 @@ from library import *
    
 class RepeatedObject:
     def __init__(self, kplist, matches, img, lambda_descr = 6):
-        self.mask = np.zeros(np.shape(img)[0:2], dtype=np.int32)
+        self.mask = np.zeros(np.shape(img)[0:2], dtype=int)
         self.kplists = [kplist]
         self.NumberOfCopies = len(kplist)
         self.lambda_descr = lambda_descr        
@@ -56,7 +56,7 @@ class RepeatedObject:
             img2show += colorzone*img*0.5
         img2show = img2show.astype(np.uint8)
         for i in range(self.NumberOfCopies):
-            img2show = cv2.putText(img2show, '%d'%i, tuple(np.int32(self.kplists[0][i].pt)) ,
+            img2show = cv2.putText(img2show, '%d'%i, tuple(int(self.kplists[0][i].pt)) ,
             cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255,0,0),2, cv2.LINE_AA )
         return img2show
 
@@ -126,7 +126,7 @@ class GroupingStrategy(object):
 
         img = cv2.imread(ac_img_path) # trainImage
         gray= cv2.cvtColor(img,cv2.COLOR_BGR2GRAY)
-        sift = cv2.xfeatures2d.SIFT_create()
+        sift = cv2.SIFT_create()
         klistac, dlistac = sift.detectAndCompute(gray,None)
         self.obj = self.libAS.New_GS(ctypes.c_float(4.0), ctypes.c_int(6000))
         self.Bind_KPs(klistac,dlistac,True)
@@ -155,7 +155,7 @@ class GroupingStrategy(object):
 
     def Add_match(self,sim, id1, x1, y1, o1, s1, a1, id2, x2, y2, o2, s2, a2):
         # Add_match(GroupingStrategy* gs, float sim, int id1, float x1, float y1,int o1,float s1,float a1, int id2, float x2, float y2,int o2,float s2,float a2)
-        sim, id1, x1, y1, o1, s1, a1, id2, x2, y2, o2, s2, a2 = np.float(sim), np.int32(id1), np.float(x1), np.float(y1), np.int32(o1), np.float(s1), np.float(a1), np.int32(id2), np.float(x2), np.float(y2), np.int32(o2), np.float(s2), np.float(a2)
+        sim, id1, x1, y1, o1, s1, a1, id2, x2, y2, o2, s2, a2 = np.float(sim), int(id1), np.float(x1), np.float(y1), int(o1), np.float(s1), np.float(a1), int(id2), np.float(x2), np.float(y2), int(o2), np.float(s2), np.float(a2)
         self.libAS.Add_match(self.obj, sim, id1, x1, y1, o1, s1, a1, id2, x2, y2, o2, s2, a2)
 
     def KPinfo_from_opencv(self,klist, dlist):
@@ -205,7 +205,7 @@ class GroupingStrategy(object):
         self.h, self.w = gray1.shape[:2]
         self.imgfloat = np.zeros(self.w*self.h, dtype = ctypes.c_float)
         self.imgfloat[:] = np.array(gray1.data).flatten()
-        sift = cv2.xfeatures2d.SIFT_create()
+        sift = cv2.SIFT_create()
         klist, dlist = sift.detectAndCompute(gray1,None)
         self.imgkplist = klist
         self.Bind_KPs(klist,dlist,False)
@@ -230,16 +230,16 @@ class GroupingStrategy(object):
         FM = np.zeros(self.data_len*NFM, dtype = ctypes.c_float)
         self.libAS.GetMatches(g, FM.ctypes.data_as(floatp), ctypes.c_bool(Interior), ctypes.c_bool(trueKP))                        
 
-        ptlist = [[np.complex(real = float(FM[self.data_len*i]), imag = float(FM[self.data_len*i+1])),
-                   np.complex(real = float(FM[self.data_len*i+2]), imag = float(FM[self.data_len*i+3]))
+        ptlist = [[complex(real = float(FM[self.data_len*i]), imag = float(FM[self.data_len*i+1])),
+                   complex(real = float(FM[self.data_len*i+2]), imag = float(FM[self.data_len*i+3]))
                     ]  for i in range(NFM)]
         
         kplist = [[cv2.KeyPoint(x = float(FM[self.data_len*i]), y = float(FM[self.data_len*i+1]),
-                    _size = 6.0, _angle = 0.0, _response = 0.9,
-                     _octave = packSIFTOctave(-1,0), _class_id = 0),
+                    size = 6.0, angle = 0.0, response = 0.9,
+                     octave = packSIFTOctave(-1,0), class_id = 0),
                     cv2.KeyPoint(x = float(FM[self.data_len*i+2]), y = float(FM[self.data_len*i+3]),
-                    _size = 6.0, _angle = 0.0, _response = 0.9,
-                     _octave = packSIFTOctave(-1,0), _class_id = 0)
+                    size = 6.0, angle = 0.0, response = 0.9,
+                     octave = packSIFTOctave(-1,0), class_id = 0)
                     ]  for i in range(NFM)]
         kplist = functools.reduce(operator.iconcat, kplist, [])
         ptlist = functools.reduce(operator.iconcat, ptlist, [])
@@ -262,10 +262,10 @@ class GroupingStrategy(object):
         else:
             colorvec = (0,0,0)
         for m in Matches:            
-            img2show = cv2.line(img2show, tuple(np.int32(np.round(kplist[m.queryIdx].pt))), tuple(np.int32(np.round(kplist[m.trainIdx].pt))), colorvec, 2) 
+            img2show = cv2.line(img2show, tuple(int(np.round(kplist[m.queryIdx].pt))), tuple(int(np.round(kplist[m.trainIdx].pt))), colorvec, 2) 
         for kp in kplist:
             # pass
-            img2show = cv2.circle(img2show, tuple(np.int32(np.round(kp.pt))), 9, colorvec, -1)#, lineType=0)         
+            img2show = cv2.circle(img2show, tuple(int(np.round(kp.pt))), 9, colorvec, -1)#, lineType=0)         
 
         if Flag is None:
             return self.ShowGroup(g, Flag=True, img2use=img2show)
@@ -287,16 +287,16 @@ class GroupingStrategy(object):
             kplist = functools.reduce(operator.iconcat, kplist, [])
             matches = [cv2.DMatch(2*i,2*i+1,FM[self.data_len*i+4]) for i in range(NFM)]
         else:
-            ptlist = [[np.complex(real = float(FM[self.data_len*i]), imag = float(FM[self.data_len*i+1])),
-                    np.complex(real = float(FM[self.data_len*i+2]), imag = float(FM[self.data_len*i+3]))
+            ptlist = [[complex(real = float(FM[self.data_len*i]), imag = float(FM[self.data_len*i+1])),
+                    complex(real = float(FM[self.data_len*i+2]), imag = float(FM[self.data_len*i+3]))
                         ]  for i in range(NFM)]
             
             kplist = [[cv2.KeyPoint(x = float(FM[self.data_len*i]), y = float(FM[self.data_len*i+1]),
-                        _size = 6.0, _angle = 0.0, _response = 0.9,
-                        _octave = packSIFTOctave(-1,0), _class_id = 0),
+                        size = 6.0, angle = 0.0, response = 0.9,
+                        octave = packSIFTOctave(-1,0), class_id = 0),
                         cv2.KeyPoint(x = float(FM[self.data_len*i+2]), y = float(FM[self.data_len*i+3]),
-                        _size = 6.0, _angle = 0.0, _response = 0.9,
-                        _octave = packSIFTOctave(-1,0), _class_id = 0)
+                        size = 6.0, angle = 0.0, response = 0.9,
+                        octave = packSIFTOctave(-1,0), class_id = 0)
                         ]  for i in range(NFM)]
             kplist = functools.reduce(operator.iconcat, kplist, [])
             ptlist = functools.reduce(operator.iconcat, ptlist, [])
@@ -355,7 +355,7 @@ class GroupingStrategy(object):
 
 
 
-gs=GroupingStrategy('./build/libautosim.so', 'im3_sub.png')
+gs=GroupingStrategy('/Users/maggie/autosim/libautosim.dylib', 'im3_sub.png')
 
 
 img1 = cv2.imread('coca.png')          # queryImage
@@ -456,7 +456,7 @@ def getClusters(ptlist,n_clusters, img):
 
         t1 = time.time()
         if hasattr(algorithm, 'labels_'):
-            y_pred = algorithm.labels_.astype(np.int)
+            y_pred = algorithm.labels_.astype(int)
         else:
             y_pred = algorithm.predict(X)
         

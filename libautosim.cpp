@@ -1,13 +1,19 @@
 // Compile with cmake (CMakeLists.txt is provided) or with the following lines in bash:
 // g++ -c -fPIC libautosim.cpp -o libautosim.o
 // g++ -shared -Wl,-soname,libautosim.so -o libautosim.so libautosim.o
-
+// export CFLAGS="-arch arm64" export CXXFLAGS="-arch arm64"
+// clang++ -std=c++11 -stdlib=libc++ libautosim.cpp -o libautosim
+// clang -fopenmp -o libautosim libautosim.cpp
+// for macOS
+// g++ -std=c++11 -Xpreprocessor -fopenmp -c -fPIC libautosim.cpp -o libautosim.o
+// g++ -c library.cpp -o library.o
+// g++ libautosim.o library.o -std=c++11 -Xpreprocessor -fopenmp -L/opt/homebrew/Cellar/libomp/18.1.1/lib -lomp -shared -Wl,-install_name,libautosim.dylib -o libautosim.dylib
 
 #include <string>
 #include <sstream>
 #include <fstream>
 #include <iostream>
-#include <omp.h>
+#include </opt/homebrew/Cellar/libomp/18.1.1/include/omp.h>
 #include <list>
 #include <vector>
 #include <stdio.h>
@@ -170,9 +176,9 @@ struct ElementNode
 {
   MatchClass *Match;
 
-  bool operator <(const ElementNode & g) {return (*this->Match<*g.Match);};
-  bool operator ==(const ElementNode & g) {return (this->Match==g.Match);}; //Pointer equality
-  bool operator ==(const MatchClass* m) {return (this->Match==m);}; //Pointer equality
+  bool operator <(const ElementNode & g) const {return (*this->Match<*g.Match);};
+  bool operator ==(const ElementNode & g) const {return (this->Match==g.Match);}; //Pointer equality
+  bool operator ==(const MatchClass* m) const {return (this->Match==m);}; //Pointer equality
 
   ElementNode(MatchClass *M){ this->Match = M; };
 private:
@@ -192,8 +198,8 @@ struct GroupNode
   omp_nest_lock_t glock;
 
   GroupNode(){omp_init_nest_lock(& glock);};
-  bool operator <(const GroupNode & g) {return (this->KPvec.size()<g.KPvec.size());};
-  bool operator ==(const GroupNode & g) {return (this==&g);}; //Pointer equality
+  bool operator <(const GroupNode & g) const {return (this->KPvec.size()<g.KPvec.size());};
+  bool operator ==(const GroupNode & g) const {return (this==&g);}; //Pointer equality
 
   //Use before merging on the GroupNode to destroy
   void InteriorUpdateMembership(GroupNode* g){for (std::list<ElementNode>::iterator it = this->Interior.begin();   it != this->Interior.end();   ++it) it->Match->membership = g;};
@@ -322,7 +328,7 @@ public:
     return(0);
   }
 
-   bool SanityCheck()
+   void SanityCheck()
   {
     int intcount = 0;
     for(std::list<GroupNode>::iterator git = GroupList.begin(); git != GroupList.end(); ++git)
